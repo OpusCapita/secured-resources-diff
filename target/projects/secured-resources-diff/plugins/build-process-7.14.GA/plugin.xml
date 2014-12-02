@@ -1,0 +1,9 @@
+<plugin name='build-process' version='7.14.GA' grailsVersion='1.3.6 &gt; *'>
+  <author>Eugeny Pozharsky</author>
+  <authorEmail>pozheg@scand.com</authorEmail>
+  <title>Helpers to build grails plugins and app</title>
+  <description>Contain tools that helps to do some works at the grails project's build phase.</description>
+  <documentation>http://buildserver.jcatalog.com/generated-docs/$groupId/build-process/$version/</documentation>
+  <type>BuildProcessGrailsPlugin</type>
+  <resources />
+</plugin>

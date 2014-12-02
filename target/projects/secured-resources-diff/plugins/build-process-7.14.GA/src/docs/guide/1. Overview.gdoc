@@ -1,0 +1,1 @@
+The grails-build-process plugin was designed to help build jcatalog's grails application and plugins by automation executing some goals and extends standard build process with any additional goals.
