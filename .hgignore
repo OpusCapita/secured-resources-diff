@@ -1,0 +1,15 @@
+syntax: glob
+
+.idea
+*.log
+*.iml
+*.ipr
+*.iws
+
+system.properties
+
+syntax: regexp
+
+^target/*$
+^lib/*$
+^out/*$
