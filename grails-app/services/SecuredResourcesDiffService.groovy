@@ -32,11 +32,9 @@ class SecuredResourcesDiffService {
 
         List result = []
 
-        String queryPath = url.path + "/" + groupId.replaceAll('\\.', '/') + "/$artefactId/${version}/${artefactId}-${version}.war"
-
         InputStream is = null
         try {
-            is = http.get([path: queryPath])
+            is = http.get([path: url.path, query: [r: 'public', g: groupId, a: artefactId, v: version, e: 'war']])
         } catch (e) {
             log.error "download war file with errors in maven", e
 
