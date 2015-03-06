@@ -40,8 +40,8 @@ grails.project.dependency.resolution = {
         } else {
             mavenLocal ()
         }
-        if (grailsSettings.config.jcatalog.mavenCentral) {
-            mavenRepo (grailsSettings.config.jcatalog.mavenCentral) {
+        if (grailsSettings.config.jcatalog.maven) {
+            mavenRepo (id:'nexus', url:grailsSettings.config.jcatalog.maven) {
                 updatePolicy 'always'
             }
         }
@@ -52,7 +52,7 @@ grails.project.dependency.resolution = {
     }
 
     plugins {
-        build 'com.jcatalog.grailsplugins:build-process:7.14.GA'
+        build 'com.jcatalog.grailsplugins:build-process:7.15.GA'
 
         compile ":twitter-bootstrap:3.3.1"
         compile ":asset-pipeline:1.9.9"

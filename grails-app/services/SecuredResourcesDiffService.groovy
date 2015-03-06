@@ -17,7 +17,8 @@ class SecuredResourcesDiffService {
      * and load secured resources
      */
     List loadSecuredResources(String groupId, String artefactId, String version) {
-        String repositoryUrl = configurationProperties['maven.repository.url']
+        String repositoryUrl = configurationProperties['maven.repository.nexus.url']
+        String repositoryName = configurationProperties['maven.repository.nexus.name']
         String username = configurationProperties['maven.repository.username']
         String password = configurationProperties['maven.repository.password']
         String securedResourcesPath = configurationProperties['securedResources.path']
@@ -34,11 +35,21 @@ class SecuredResourcesDiffService {
 
         InputStream is = null
         try {
-            is = http.get([path: url.path, query: [r: 'public', g: groupId, a: artefactId, v: version, e: 'war']])
-        } catch (e) {
-            log.error "download war file with errors in maven", e
-
-            return null
+            is = http.get([path: url.path, query: [r: repositoryName, g: groupId, a: artefactId, v: version, e: 'war']])
+        } catch (e1) {
+            // for Procurement we probably need to use 'old coordinates
+            // group id 'com.jcatalog.procurement' and artefact id 'procurement'
+            if (artefactId?.equalsIgnoreCase('proc')) {
+                try {
+                    is = http.get([path: url.path, query: [r: repositoryName, g: 'com.jcatalog.procurement', a: 'procurement', v: version, e: 'war']])
+                } catch (e2) {
+                    log.error "download war file with errors in maven", e2
+                    return null
+                }
+            } else {
+                log.error "download war file with errors in maven", e1
+                return null
+            }
         }
         ZipInputStream zipIn = new ZipInputStream(is)
         ZipEntry entry = zipIn.nextEntry
