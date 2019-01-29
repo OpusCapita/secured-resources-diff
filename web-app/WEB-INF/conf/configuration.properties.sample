@@ -1,7 +1,7 @@
 maven.repository.nexus.url = http://maven.scand/nexus/service/local/artifact/maven/content
 maven.repository.nexus.name = jcatalog
-maven.repository.username= sab
-maven.repository.password= darwin
+maven.repository.username=
+maven.repository.password=
 
 securedResources.path = META-INF/securedResources.xml
 

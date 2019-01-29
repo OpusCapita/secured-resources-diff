@@ -1,5 +1,4 @@
 //= require jquery
-//= require bootstrap
 //= require ZeroClipboard.Core
 //= require ZeroClipboard
 
