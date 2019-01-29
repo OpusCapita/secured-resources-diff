@@ -9,7 +9,15 @@ aliases:
   - &inject-environment
     name: Inject environment
     command: /bin/env_inject.sh
-
+  - &calculate-docker-variables
+    name: Calculate docker repository and tag names
+    command: |
+      slugify() { echo $1 | iconv -t ascii//TRANSLIT | sed -E s/[^a-zA-Z0-9]+/-/g | sed -E s/^-+\|-+$//g | tr A-Z a-z | cut -c1-53; }
+      GITHUB_PROJECT="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
+      DOCKER_IMAGE_REPOSITORY="$(echo ${GITHUB_PROJECT} | tr '[:upper:]' '[:lower:]')"
+      DOCKER_IMAGE_TAG="$(slugify ${CIRCLE_BRANCH})"
+      echo "export DOCKER_IMAGE_REPOSITORY=${DOCKER_IMAGE_REPOSITORY}" >> ${BASH_ENV}
+      echo "export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> ${BASH_ENV}
 jobs:
   build:
     <<: *defaults
@@ -27,48 +35,53 @@ jobs:
           command: grails refresh-dependencies --non-interactive
       - run:
           name: Deploy.
-          command: grails maven-deploy -Dgrails.env=prod -verbose
+          command: grails war -Dgrails.env=prod -verbose
+      - run: *calculate-docker-variables
       - run:
-          name: Deploy docker image
-          working_directory: ~/build/.docker
+          name: Build application Docker image and push it into Docker repository
           command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            ./docker-build.sh --git-branch
-            ./docker-push.sh --git-branch
-
+            NAME=$(cat application.properties | grep app.name | cut -d'=' -f2)
+            VERSION=$(cat application.properties | grep app.version | cut -d'=' -f2)
+            # docker login as we 1) might use private images in Docker file already 2) push application image into central repo later
+            docker login -u "${DOCKER_USER}" -p "${DOCKER_PASS}"
+            # build image
+            docker build --no-cache \
+              --build-arg WAR_PATH=./target/$NAME-$VERSION.war \
+              --build-arg VCS_URL="${CIRCLE_REPOSITORY_URL}" \
+              --build-arg VCS_REF="${CIRCLE_SHA1}" \
+              --build-arg NAME="${NAME}" \
+              --build-arg VERSION="${VERSION}" \
+              --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+              -t "${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" .
+            # push app image
+            docker push "${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}"
       - save_cache:
           key: 'v1-documentation-{{ .Branch }}-{{ checksum "grails-app/conf/BuildConfig.groovy" }}'
           paths:
             - ~/.m2/repository
 
-  deploy-demo:
+  deploy:
     docker:
       - image: opuscapita/minsk-core-ci:grails-2.4.4-jdk-8u131-nodejs-8.9.4-maven-3.3.9
     working_directory: ~/build
     steps:
       - run: *inject-environment
       - checkout
+      - run: *calculate-docker-variables
       - run:
           name: Commit to continuous-deployment branch
           command: |
-            DOCKER_IMAGE_REPOSITORY="opuscapita/$(.docker/get-name.sh)"
-            DOCKER_IMAGE_TAG="$(.docker/get-docker-tag.sh --git-branch)"
-
             git config --global user.email "${GH_MAIL}"
             git config --global user.name "${GH_NAME}"
             git checkout continuous-deployment
-
             message=$(mktemp)
-
-            cat << EOF >$message
+            cat \<< EOF >$message
             Deploy ${CIRCLE_BRANCH} at ${CIRCLE_SHA1}
-
             [branch:${CIRCLE_BRANCH}]
             [commit:${CIRCLE_SHA1}]
             [docker_image_repository:${DOCKER_IMAGE_REPOSITORY}]
             [docker_image_tag:${DOCKER_IMAGE_TAG}]
             EOF
-
             n=0
             until [ $n -ge 5 ]; do
               git fetch origin
@@ -77,7 +90,6 @@ jobs:
               git push && break
               n=$[$n+1]
             done
-
             if [ $n -ge 5 ]; then
               echo "Failed to push 5 times, exiting."
               exit 1
@@ -85,9 +97,9 @@ jobs:
 
 workflows:
   version: 2
-  build:
+  build-and-deploy-to-cloud:
     jobs:
       - build
-      - deploy-demo:
+      - deploy:
           requires:
             - build
