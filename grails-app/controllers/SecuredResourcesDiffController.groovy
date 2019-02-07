@@ -10,6 +10,11 @@ class SecuredResourcesDiffController {
      * Show diff form
      */
     def index() {
+        if (request.method == 'POST') {
+            SecuredResourcesDiffCommand command = new SecuredResourcesDiffCommand()
+            bindData(command, params)
+            return diff(command)
+        }
         render view: 'diff', model: [command: new SecuredResourcesDiffCommand(), applications: securedResourcesDiffService.applications]
     }
 

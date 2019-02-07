@@ -7,11 +7,12 @@
   <div class="container">
     <h2>Secured Resources Diff</h2>
 
-    <g:if test="${!(addedItems && deletedItems) && checkedItems}">
-      <div class="bs-callout bs-callout-info">
-        <button data-dismiss="alert" class="close" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
-        Secured Resources are not changed
-      </div>
+    <g:if test="${request.method == 'POST'}">
+      <g:if test="${!addedItems && !deletedItems}">
+        <div class="bs-callout bs-callout-info">
+          Secured Resources are not changed
+        </div>
+      </g:if>
     </g:if>
 
     <g:form action="diff" role="form" class="form-horizontal">

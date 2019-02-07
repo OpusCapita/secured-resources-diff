@@ -17,6 +17,39 @@ class SecuredResourcesDiffService {
      * and load secured resources
      */
     List loadSecuredResources(String groupId, String artefactId, String version) {
+        if (configurationProperties['maven.repository.server'] == 'nexus') {
+            return loadSecuredResourcesFromNexus(groupId, artefactId, version)
+        }
+        return loadSecuredResourcesFromArtifactory(groupId, artefactId, version)
+    }
+
+    List loadSecuredResourcesFromArtifactory(String groupId, String artefactId, String version) {
+        String repositoryUrl = configurationProperties['maven.repository.artifactory.url']
+        String username = configurationProperties['maven.repository.username']
+        String password = configurationProperties['maven.repository.password']
+        String securedResourcesPath = configurationProperties['securedResources.path']
+
+        URL url = new URL ("${repositoryUrl}/${groupId.replace('.', '/')}/${artefactId}/${version}/${artefactId}-${version}.war!/${securedResourcesPath}")
+        try {
+            def xmlContent = url.getText(['requestProperties': ["Authorization": "Basic " + "${username}:${password}".bytes.encodeBase64().toString()]])
+            // println "${xmlContent}"
+            try {
+                def result = []
+                GPathResult xml = new XmlSlurper().parseText(xmlContent)
+                for (item in xml.SecuredResource) {
+                    result << [description: item.@description.text(), resourceId: item.ResourceId.text(), resourceType: item.ResourceType.text(), realm: item.Realm.text()]
+                }
+                return result
+            } catch (e) {
+                log.error "download parsing secured resources xml file", e
+            }
+        } catch (e) {
+            log.error "download war file with errors in maven", e
+        }
+
+    }
+
+    List loadSecuredResourcesFromNexus(String groupId, String artefactId, String version) {
         String repositoryUrl = configurationProperties['maven.repository.nexus.url']
         String repositoryName = configurationProperties['maven.repository.nexus.name']
         String username = configurationProperties['maven.repository.username']
@@ -31,7 +64,6 @@ class SecuredResourcesDiffService {
             http.auth.basic(username, password)
         }
 
-        List result = []
 
         InputStream is = null
         try {
@@ -51,6 +83,7 @@ class SecuredResourcesDiffService {
                 return null
             }
         }
+        def result = []
         ZipInputStream zipIn = new ZipInputStream(is)
         ZipEntry entry = zipIn.nextEntry
         while(entry != null) {

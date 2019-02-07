@@ -1,43 +1,14 @@
-maven.repository.nexus.url = http://maven.scand/nexus/service/local/artifact/maven/content
-maven.repository.nexus.name = jcatalog
+maven.repository.server=artifactory
+# for artifactory it is enough to define URL only
+maven.repository.artifactory.url = https://opuscapita.jfrog.io/opuscapita/maven-get
+
+# for nexus it is necessary to define URL and name
+#maven.repository.nexus.url = http://maven.scand/nexus/service/local/artifact/maven/content
+#maven.repository.nexus.name = jcatalog
+
+# for each kind of server you might need to set up username and password
 maven.repository.username=
 maven.repository.password=
 
-securedResources.path = META-INF/securedResources.xml
-
-applications = prov, opc, pim, dam, cmp, proc, sdp, ssm, rfq
-applications.prov.artefactId=prov
-applications.prov.groupId=com.jcatalog.prov
-applications.prov.title=PROV
-
-applications.opc.artefactId=opc
-applications.opc.groupId=com.jcatalog.opc
-applications.opc.title=OPC
-
-applications.pim.artefactId=pim
-applications.pim.groupId=com.jcatalog.pim
-applications.pim.title=PIM
-
-applications.dam.artefactId=dam
-applications.dam.groupId=com.jcatalog.dam
-applications.dam.title=DAM
-
-applications.cmp.artefactId=cmp
-applications.cmp.groupId=com.jcatalog.cmp
-applications.cmp.title=CMP
-
-applications.proc.artefactId=proc
-applications.proc.groupId=com.jcatalog.proc
-applications.proc.title=PROCUREMENT
-
-applications.sdp.artefactId=sdp
-applications.sdp.groupId=com.jcatalog.sdp
-applications.sdp.title=SDP
-
-applications.ssm.artefactId=ssm
-applications.ssm.groupId=com.jcatalog.ssm
-applications.ssm.title=SSM
-
-applications.rfq.artefactId=rfq
-applications.rfq.groupId=com.jcatalog.rfq
-applications.rfq.title=RFQ
+# all other configuration options could be found in default-configuration.properties file
+# if required you can override them here

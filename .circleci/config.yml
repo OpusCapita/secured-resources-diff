@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 defaults: &defaults
   docker:
@@ -27,18 +27,20 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           keys:
-            - 'v1-documentation-{{ .Branch }}-{{ checksum "grails-app/conf/BuildConfig.groovy" }}'
-            - 'v1-documentation-{{ .Branch }}'
-            - v1-documentation
+            - maven
       - run:
-          name: Refresh grails dependencies
+          name: Refresh dependencies
           command: grails refresh-dependencies --non-interactive
       - run:
-          name: Deploy.
+          name: Build appliation artifact
           command: grails war -Dgrails.env=prod -verbose
+      - save_cache:
+          key: maven
+          paths:
+            - ~/.m2/repository
       - run: *calculate-docker-variables
       - run:
-          name: Build application Docker image and push it into Docker repository
+          name: Build appliation docker image and push it into repository
           command: |
             NAME=$(cat application.properties | grep app.name | cut -d'=' -f2)
             VERSION=$(cat application.properties | grep app.version | cut -d'=' -f2)
@@ -55,51 +57,47 @@ jobs:
               -t "${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}" .
             # push app image
             docker push "${DOCKER_IMAGE_REPOSITORY}:${DOCKER_IMAGE_TAG}"
-      - save_cache:
-          key: 'v1-documentation-{{ .Branch }}-{{ checksum "grails-app/conf/BuildConfig.groovy" }}'
-          paths:
-            - ~/.m2/repository
 
-  deploy:
-    docker:
-      - image: opuscapita/minsk-core-ci:grails-2.4.4-jdk-8u131-nodejs-8.9.4-maven-3.3.9
-    working_directory: ~/build
-    steps:
-      - run: *inject-environment
-      - checkout
-      - run: *calculate-docker-variables
-      - run:
-          name: Commit to continuous-deployment branch
-          command: |
-            git config --global user.email "${GH_MAIL}"
-            git config --global user.name "${GH_NAME}"
-            git checkout continuous-deployment
-            message=$(mktemp)
-            cat \<< EOF >$message
-            Deploy ${CIRCLE_BRANCH} at ${CIRCLE_SHA1}
-            [branch:${CIRCLE_BRANCH}]
-            [commit:${CIRCLE_SHA1}]
-            [docker_image_repository:${DOCKER_IMAGE_REPOSITORY}]
-            [docker_image_tag:${DOCKER_IMAGE_TAG}]
-            EOF
-            n=0
-            until [ $n -ge 5 ]; do
-              git fetch origin
-              git reset --hard @{u}
-              git commit --allow-empty -F $message
-              git push && break
-              n=$[$n+1]
-            done
-            if [ $n -ge 5 ]; then
-              echo "Failed to push 5 times, exiting."
-              exit 1
-            fi
+  # deploy:
+  #   docker:
+  #     - image: opuscapita/minsk-core-ci:grails-2.4.4-jdk-8u131-nodejs-8.9.4-maven-3.3.9
+  #   working_directory: ~/build
+  #   steps:
+  #     - run: *inject-environment
+  #     - checkout
+  #     - run: *calculate-docker-variables
+  #     - run:
+  #         name: Commit to continuous-deployment branch
+  #         command: |
+  #           git config --global user.email "${GH_MAIL}"
+  #           git config --global user.name "${GH_NAME}"
+  #           git checkout continuous-deployment
+  #           message=$(mktemp)
+  #           cat \<< EOF >$message
+  #           Deploy ${CIRCLE_BRANCH} at ${CIRCLE_SHA1}
+  #           [branch:${CIRCLE_BRANCH}]
+  #           [commit:${CIRCLE_SHA1}]
+  #           [docker_image_repository:${DOCKER_IMAGE_REPOSITORY}]
+  #           [docker_image_tag:${DOCKER_IMAGE_TAG}]
+  #           EOF
+  #           n=0
+  #           until [ $n -ge 5 ]; do
+  #             git fetch origin
+  #             git reset --hard @{u}
+  #             git commit --allow-empty -F $message
+  #             git push && break
+  #             n=$[$n+1]
+  #           done
+  #           if [ $n -ge 5 ]; then
+  #             echo "Failed to push 5 times, exiting."
+  #             exit 1
+  #           fi
 
 workflows:
   version: 2
   build-and-deploy-to-cloud:
     jobs:
       - build
-      - deploy:
-          requires:
-            - build
+      # - deploy:
+      #     requires:
+      #       - build

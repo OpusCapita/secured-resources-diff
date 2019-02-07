@@ -1,0 +1,25 @@
+FROM opuscapita/minsk-core-oracle-jdk:1.8.192
+
+LABEL maintainer="Alexey Sergeev <alexey.sergeev@opuscapita.com>"
+
+# Download Tomcat from Apache website
+RUN curl -fLk -o /tmp/tomcat.tar.gz https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.92/bin/apache-tomcat-7.0.92.tar.gz
+# Tomcat Home directory
+ENV TOMCAT_HOME=/usr/lib/tomcat
+# extract tomcat into TOMCAT_HOME folder
+RUN mkdir -p $TOMCAT_HOME && tar -xzf /tmp/tomcat.tar.gz --strip-components=1 -C $TOMCAT_HOME
+# remove all deafult applications
+RUN rm -rf $TOMCAT_HOME/webapps/*
+
+ARG WAR_PATH
+ENV APPLICATION_PATH=/usr/lib/application
+RUN mkdir -p $APPLICATION_PATH
+# copywar file
+COPY $WAR_PATH ${APPLICATION_PATH}/app.war
+# extract application by APPLICATION_PATH and remove war file
+RUN unzip -q -x $APPLICATION_PATH/app.war -d $APPLICATION_PATH && rm ${APPLICATION_PATH}/app.war
+
+COPY .docker/entrypoint.sh /usr/bin/entrypoint.sh
+
+EXPOSE 8080
+ENTRYPOINT ["entrypoint.sh"]
