@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "labels" . | nindent 6 }}
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | nindent 8 }}
+      annotations:
+        date: {{ now }} # RollingRestart workaround. https://github.com/kubernetes/kubernetes/issues/13488
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "2048Mi"
+          limits:
+            memory: "4096Mi"
+        volumeMounts:
+        - name: machineuser-vault
+          mountPath: /machineuser-vault
+          readOnly: true
+
+      imagePullSecrets:
+      - name: {{.Values.dockerSecret}}
+
+      volumes:
+      - name: machineuser-vault
+        secret:
+          secretName: machineuser-vault-master-secret

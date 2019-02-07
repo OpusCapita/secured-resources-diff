@@ -1,0 +1,4 @@
+[submodule "helm/dependencies"]
+	path = helm/dependencies
+	url = git@github.com:OpusCapita/minsk-core-helm-charts.git
+	branch = master
