@@ -6,7 +6,7 @@ ARG VCS_URL
 ARG VCS_REF
 ARG VERSION
 
-LABEL maintainer="Alexey Sergeev <alexey.sergeev@opuscapita.com>"
+LABEL maintainer="Alexey Sergeev <alexey.sergeev@opuscapita.com>" \
       org.label-schema.name=$NAME \
       org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.vcs-url=$VCS_URL \
