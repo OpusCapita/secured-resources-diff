@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
   labels:
-    {{- include "labels" . | nindent 4 }}
+    {{- include "labels" . | trim | nindent 4 }}
 spec:
   selector:
     matchLabels:
@@ -15,7 +15,7 @@ spec:
     metadata:
       labels:
         app: {{ .Chart.Name }}
-        {{- include "labels" . | nindent 8 }}
+        {{- include "labels" . | trim | nindent 8 }}
       annotations:
         date: {{ now }} # RollingRestart workaround. https://github.com/kubernetes/kubernetes/issues/13488
     spec:

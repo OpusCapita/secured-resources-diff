@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {{ .Chart.Name }}
   labels:
-    {{- include "labels" . | nindent 4 }}
+    {{- include "labels" . | trim | nindent 4 }}
 spec:
   type: ClusterIP
   ports:
