@@ -18,7 +18,6 @@ jobs:
               MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST \
               MINSK_CORE_SLACK_CI_WEBHOOK_URL
 
-jobs:
   build:
     docker:
       - image: opuscapita/minsk-core-cd:1
