@@ -48,7 +48,6 @@ jobs:
     <<: *docker_and_working_directory
     steps:
       - checkout
-      - run: *calculate-docker-variables
       - setup_remote_docker
       - run:
           name: Build appliation docker image and push it into repository
