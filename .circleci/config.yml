@@ -55,7 +55,7 @@ jobs:
             # Calculate docker repository and tag names
             GITHUB_PROJECT="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
             DOCKER_REPOSITORY="$(echo ${GITHUB_PROJECT} | tr '[:upper:]' '[:lower:]')"
-            DOCKER_TAG=$( generate-docker-tag.sh $CIRCLE_BRANCH )
+            DOCKER_TAG=$( generate-docker-tag.sh ${CIRCLE_BRANCH} )
 
             # docker login as we 1) might use private images in Docker file already 2) push application image into central repo later
             docker login -u "${DOCKER_USER}" -p "${DOCKER_PASS}"
@@ -68,7 +68,7 @@ jobs:
               --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
               --build-arg VCS_URL="${CIRCLE_REPOSITORY_URL}" \
               --build-arg VCS_REF="${CIRCLE_SHA1}" \
-              -t "${DOCKER_REPOSITORY}:${DOCKER_AG}" .
+              -t "${DOCKER_REPOSITORY}:${DOCKER_TAG}" .
 
             # push app image
             docker push "${DOCKER_REPOSITORY}:${DOCKER_TAG}"
