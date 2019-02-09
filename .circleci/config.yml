@@ -49,6 +49,9 @@ jobs:
           # setup a separate namespace in k8s for development installation,
           # and make sure imagePullSecret is present in this namespace before trying to deploy anything
           command: |
+            echo "Branch: '$(get-source-branch.sh)'"
+            echo "Commit: '$(get-source-commit.sh)'"
+
             setup-dev-namespace.sh \
               --name=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" ) \
               --gh-repo-link="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" \
