@@ -73,21 +73,17 @@ jobs:
             DOCKER_IMAGE_REPOSITORY=$( get-docker-repository.sh )
             DOCKER_IMAGE_TAG=$( get-docker-tag.sh )
 
+            # change to chart folder
+            cd ./helm/chart
+
             # configure $HELM_HOME
             helm init --client-only
+
             # put Helm dependencies into correct folder
-            cd ./helm/chart
             helm dependency update
+
             NAMESPACE=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" )
             echo "NAMESPACE '${NAMESPACE}'"
-            # install/update release
-            helm upgrade \
-              --install \
-              --force \
-              --values $VALUES_FILE \
-              --namespace $NAMESPACE \
-              $NAMESPACE \
-              .
 
             # install/update release
             helm upgrade \
@@ -120,9 +116,6 @@ jobs:
               --namespace $NAMESPACE \
               $NAMESPACE \
               .
-
-            # restore working directory to initial pwd
-            cd $working_directory
 
 workflows:
   version: 2
