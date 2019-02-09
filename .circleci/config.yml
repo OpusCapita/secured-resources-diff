@@ -3,21 +3,38 @@ version: 2.1
 orbs:
   git: opuscapita/git@volatile
 
-aliases:
-  - &inject-environment
-    name: Inject environment
-    command: /bin/env_inject.sh
-
-docker_and_working_directory: &docker_and_working_directory
-  docker:
-    - image: opuscapita/minsk-core-cd:1
-  working_directory: ~/build
+jobs:
+  inject-environment:
+    docker:
+      - image: opuscapita/minsk-core-machineuser-env:1
+    steps:
+      - run:
+          name: Inject secrets from vault to CircleCI project's environment
+          command: |
+            circle_ci_add_env.sh \
+              DOCKER_USER DOCKER_PASS \
+              AZURE_USER AZURE_PASS \
+              MINSK_CORE_AZURE_SUBSCRIPTION_ID MINSK_CORE_K8S_AZURE_RG MINSK_CORE_K8S_AZURE_NAME \
+              MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST \
+              MINSK_CORE_SLACK_CI_WEBHOOK_URL
 
 jobs:
-  deploy-to-cloud:
-    <<: *docker_and_working_directory
+  build:
+    docker:
+      - image: opuscapita/minsk-core-cd:1
+      auth:
+        username: ${DOCKER_USER}
+        password: ${DOCKER_PASS}
+    working_directory: ~/build
     steps:
-      - run: *inject-environment
+      - run:
+          name: Check required environment variables
+          command: |
+            assert-vars.sh \
+              AZURE_USER AZURE_PASS \
+              MINSK_CORE_AZURE_SUBSCRIPTION_ID MINSK_CORE_K8S_AZURE_RG MINSK_CORE_K8S_AZURE_NAME \
+              MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST \
+              MINSK_CORE_SLACK_CI_WEBHOOK_URL
       - git/checkout-with-submodules
       - run:
           name: Login to cluster
@@ -111,4 +128,7 @@ workflows:
   version: 2
   deploy-to-cloud:
     jobs:
-      - deploy-to-cloud
+      - inject-environment
+      - build:
+          requires:
+            - inject-environment
