@@ -10,7 +10,7 @@ aliases:
 
 docker_and_working_directory: &docker_and_working_directory
   docker:
-    - image: opuscapita/minsk-core-ci:grails-2.4.4-jdk-8u131-nodejs-8.9.4-maven-3.3.9
+    - image: opuscapita/minsk-core-cd:1
   working_directory: ~/build
 
 jobs:
@@ -20,56 +20,93 @@ jobs:
       - run: *inject-environment
       - git/checkout-with-submodules
       - run:
-          name: Extract params from commit message into environment
-          command: |
-            ./bin/parse-commit.sh "$(git show -s --format=%b ${CIRCLE_SHA1})"
-      - run:
-          name: Set required environment variables
-          command: |
-            slugify() { echo $1 | iconv -t ascii//TRANSLIT | sed -E s/[^a-zA-Z0-9]+/-/g | sed -E s/^-+\|-+$//g | tr A-Z a-z | cut -c1-53; }
-            NAMESPACE=$( slugify "dev-${CIRCLE_PROJECT_REPONAME}-${BRANCH}" )
-            SAFE_BRANCH=$( slugify "${BRANCH}" )
-            echo "export NAMESPACE=${NAMESPACE}" >> ${BASH_ENV}
-            echo "export SAFE_BRANCH=${SAFE_BRANCH}" >> ${BASH_ENV}
-            echo "export IMAGE_PULL_SECRET_NAME=dockerhub" >> ${BASH_ENV}
-      - run:
           name: Login to cluster
           command: |
-            ./bin/cluster-login.sh \
+            aks-login.sh \
               --azure-user="${AZURE_USER}" \
               --azure-pass="${AZURE_PASS}" \
               --subscription="${MINSK_CORE_AZURE_SUBSCRIPTION_ID}" \
               --azure-rg="${MINSK_CORE_K8S_AZURE_RG}" \
               --cluster-name="${MINSK_CORE_K8S_AZURE_NAME}"
       - run:
-          name: Setup deployment namespace
+          name: Prepare namespace
           # setup a separate namespace in k8s for development installation,
           # and make sure imagePullSecret is present in this namespace before trying to deploy anything
           command: |
-            ./bin/setup-dev-namespace.sh \
-              --name="${NAMESPACE}" \
+            setup-dev-namespace.sh \
+              --name=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" ) \
               --gh-repo-link="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" \
-              --gh-branch="${BRANCH}" \
-              --gh-commit="${COMMIT}" \
+              --gh-branch=$( get-source-branch.sh ) \
+              --gh-commit=$( get-source-commit.sh ) \
               --ci-build-url="${CIRCLE_BUILD_URL}"
       - run:
-          name: Copy over required secrets into deployment namespace
+          name: Copy over required secrets
           command: |
-            ./bin/copy-secrets.sh \
-              --from-namespace=lunar-system \
-              --to-namespace=${NAMESPACE} \
-              --secret="${IMAGE_PULL_SECRET_NAME}" \
+            copy-secrets.sh \
+              --to-namespace=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" ) \
               --secret="machineuser-vault-master-secret" \
-              --secret="docs.dev.opuscapita.com-tls"
+              --secret="${MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST}"-tls
       - run:
           name: Install/upgrade helm release
           command: |
-            export GITHUB_PROJECT="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
-            ./bin/helm-upgrade.sh \
-              --chart-path=./helm/chart \
-              --values-template=./helm/values.template.yaml \
-              --namespace=${NAMESPACE} \
-              --release-name=${NAMESPACE}
+            GITHUB_PROJECT="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
+            APPLICATION_URL_PATH="/${CIRCLE_PROJECT_REPONAME}/$( get-source-branch.sh | xargs generate-k8s-resource-name.sh )"
+            APPLICATION_URL="http://${MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST}${APPLICATION_URL_PATH}"
+            BRANCH=$( get-source-branch.sh )
+            COMMIT=$( get-source-commit.sh )
+            DOCKER_IMAGE_REPOSITORY=$( get-docker-repository.sh )
+            DOCKER_IMAGE_TAG=$( get-docker-tag.sh )
+
+            # configure $HELM_HOME
+            helm init --client-only
+            # put Helm dependencies into correct folder
+            cd ./helm/chart
+            helm dependency update
+            NAMESPACE=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" )
+            # install/update release
+            helm upgrade \
+              --install \
+              --force \
+              --values $VALUES_FILE \
+              --namespace $NAMESPACE \
+              $NAMESPACE \
+              .
+
+            # install/update release
+            helm upgrade \
+              --install \
+              --force \
+              --set image.repository="${DOCKER_IMAGE_REPOSITORY}" \
+              --set image.tag="${DOCKER_IMAGE_TAG}" \
+              --set ingress.host="${MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST}" \
+              --set ingress.path="${APPLICATION_URL_PATH}" \
+              --set dockerSecret="dockerhub" \
+              --set github-status-deployment-link.github.user="${GH_NAME}" \
+              --set github-status-deployment-link.github.password="${GH_PASS}" \
+              --set github-status-deployment-link.github.project="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" \
+              --set github-status-deployment-link.github.ref="${COMMIT}" \
+              --set github-status-deployment-link.url="${APPLICATION_URL}" \
+              --set selfkiller.azureAks.resourceGroup="${MINSK_CORE_K8S_AZURE_RG}" \
+              --set selfkiller.azureAks.clusterName="${MINSK_CORE_K8S_AZURE_NAME}" \
+              --set selfkiller.image.repository="${DOCKER_IMAGE_REPOSITORY}" \
+              --set selfkiller.image.tag="${DOCKER_IMAGE_TAG}" \
+              --set selfkiller.github.project="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" \
+              --set selfkiller.github.branch="${BRANCH}" \
+              --set slack-notifications.webhook="${MINSK_CORE_SLACK_CI_WEBHOOK_URL}" \
+              --set slack-notifications.github.user="${CIRCLE_USERNAME}" \
+              --set slack-notifications.github.project="${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" \
+              --set slack-notifications.github.branch="${BRANCH}" \
+              --set slack-notifications.github.ref="${COMMIT}" \
+              --set slack-notifications.ci.jobUrl="${CIRCLE_BUILD_URL}" \
+              --set slack-notifications.link.url="${APPLICATION_URL}" \
+              --set sync-secrets.secrets="{${MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST}-tls,dockerhub,machineuser-vault-master-secret}" \
+              --namespace $NAMESPACE \
+              $NAMESPACE \
+              .
+
+            # restore working directory to initial pwd
+            cd $working_directory
+
 workflows:
   version: 2
   deploy-to-cloud:
