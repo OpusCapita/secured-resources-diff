@@ -43,11 +43,6 @@ jobs:
           key: maven
           paths:
             - ~/.m2/repository
-
-  build-docker:
-    <<: *docker_and_working_directory
-    steps:
-      - checkout
       - setup_remote_docker
       - run:
           name: Build appliation docker image and push it into repository
@@ -80,12 +75,12 @@ jobs:
 
             # trigger deployment
             trigger-continuous-deployment.sh \
-              --github-name=${GH_NAME} \
-              --github-mail=$GH_MAIL} \
-              --source-branch=${CIRCLE_BRANCH} \
-              --source-commit=${CIRCLE_SHA1} \
-              --docker-repository=${DOCKER_REPOSITORY} \
-              --docker-tag=${DOCKER_TAG}
+              --github-name="${GH_NAME}" \
+              --github-mail="$GH_MAIL}" \
+              --source-branch="${CIRCLE_BRANCH}" \
+              --source-commit="${CIRCLE_SHA1}" \
+              --docker-repository="${DOCKER_REPOSITORY}" \
+              --docker-tag="${DOCKER_TAG}"
 
 workflows:
   version: 2
@@ -95,7 +90,3 @@ workflows:
       - build:
           requires:
             - inject-environment
-      - build-docker:
-          requires:
-            - inject-environment
-            - build
