@@ -16,7 +16,8 @@ jobs:
               AZURE_USER AZURE_PASS \
               MINSK_CORE_AZURE_SUBSCRIPTION_ID MINSK_CORE_K8S_AZURE_RG MINSK_CORE_K8S_AZURE_NAME \
               MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST \
-              MINSK_CORE_SLACK_CI_WEBHOOK_URL
+              MINSK_CORE_SLACK_CI_WEBHOOK_URL \
+              MAVEN_REPO JFROG_USER JFROG_PASSWD
 
   build:
     docker:
@@ -33,7 +34,8 @@ jobs:
               AZURE_USER AZURE_PASS \
               MINSK_CORE_AZURE_SUBSCRIPTION_ID MINSK_CORE_K8S_AZURE_RG MINSK_CORE_K8S_AZURE_NAME \
               MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST \
-              MINSK_CORE_SLACK_CI_WEBHOOK_URL
+              MINSK_CORE_SLACK_CI_WEBHOOK_URL \
+              MAVEN_REPO JFROG_USER JFROG_PASSWD
       - git/checkout-with-submodules
       - run:
           name: Login to cluster
@@ -91,8 +93,14 @@ jobs:
               --force \
               --set image.repository="${DOCKER_IMAGE_REPOSITORY}" \
               --set image.tag="${DOCKER_IMAGE_TAG}" \
+              \
               --set ingress.host="${MINSK_CORE_K8S_DEMO_DEPLOYMENTS_HOST}" \
               --set ingress.path="${APPLICATION_URL_PATH}" \
+              \
+              --set artifactory.mavenRepoUrl="${MAVEN_REPO}" \
+              --set artifactory.userName="${JFROG_USER}" \
+              --set artifactory.userPassword="${JFROG_PASSWD}" \
+              \
               --set dockerSecret="dockerhub" \
               --set github-status-deployment-link.github.user="${GH_NAME}" \
               --set github-status-deployment-link.github.password="${GH_PASS}" \

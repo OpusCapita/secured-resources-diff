@@ -5,3 +5,7 @@ ingress:
   host:
   path:
 dockerSecret: ""
+artifactory:
+  mavenRepoUrl:
+  userName:
+  userPassowrd:

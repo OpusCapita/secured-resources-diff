@@ -23,6 +23,9 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: Always
+        args:
+          - --context-path={{ .Values.ingress.path }}
+          - --path-to-configuration-properties-file=/etc/conf/configuration.properties
         env:
         - name: JAVA_OPTS
           value:
@@ -37,10 +40,13 @@ spec:
             memory: "2048Mi"
           limits:
             memory: "4096Mi"
+
         volumeMounts:
         - name: machineuser-vault
           mountPath: /machineuser-vault
           readOnly: true
+        - name: configuration.properties
+          mountPath: /etc/conf
 
       imagePullSecrets:
       - name: {{.Values.dockerSecret}}
@@ -49,3 +55,18 @@ spec:
       - name: machineuser-vault
         secret:
           secretName: machineuser-vault-master-secret
+
+      - name: configuration.properties
+        configMap:
+          name: configuration.properties
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configuration.properties
+data:
+  configuration.properties: |
+    maven.repository.server=artifactory
+    maven.repository.artifactory.url={{ .Values.artifactory.mavenRepoUrl }}
+    maven.repository.username={{ .Values.artifactory.userName }}
+    maven.repository.password={{ .Values.artifactory.userPassword }}
