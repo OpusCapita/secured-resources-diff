@@ -45,7 +45,7 @@ spec:
         - name: machineuser-vault
           mountPath: /machineuser-vault
           readOnly: true
-        - name: configuration.properties
+        - name: configuration-properties-file
           mountPath: /etc/conf
 
       imagePullSecrets:
@@ -56,14 +56,14 @@ spec:
         secret:
           secretName: machineuser-vault-master-secret
 
-      - name: configuration.properties
+      - name: configuration-properties-file
         configMap:
-          name: configuration.properties
+          name: configuration-properties-file
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: configuration.properties
+  name: configuration-properties-file
 data:
   configuration.properties: |
     maven.repository.server=artifactory
