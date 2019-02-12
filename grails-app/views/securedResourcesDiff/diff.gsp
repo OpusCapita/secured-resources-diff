@@ -8,14 +8,14 @@
     <h2>Secured Resources Diff</h2>
 
     <g:if test="${request.method == 'POST'}">
-      <g:if test="${!addedItems && !deletedItems}">
+      <g:if test="${!command.hasErrors() && !addedItems && !deletedItems}">
         <div class="bs-callout bs-callout-info">
           Secured Resources are not changed
         </div>
       </g:if>
     </g:if>
 
-    <g:form action="diff" role="form" class="form-horizontal">
+    <g:form role="form" class="form-horizontal">
         <div class="form-group ${g.hasErrors([bean: command, field: 'application'], 'has-error')}">
             <label for="application" class="control-label col-sm-3">Application</label>
             <div class="col-sm-9">
@@ -58,34 +58,34 @@
             </g:hasErrors>
         </div>
 
-        <div class="pull-right">
-            <button type="submit" class="btn btn-primary">Generate</button>
-        <div>
+        <div class="form-submit text-right">
+            <div class="form-inline">
+                <button type="submit" class="btn btn-primary">Generate</button>
+            </div>
+        </div>
     </g:form>
 
     <g:if test="${addedItems || deletedItems}">
         <h2>Wiki markup</h2>
         <textarea id="wiki_markup" style="width: 100%" rows="10">
-            <g:if test="${addedItems}">
-h2. New Resources
+<g:if test="${addedItems}">h2. New Resources
 ||Type||Realm||Resource Id||Description||
 <g:each in="${addedItems}" var="item">|${item.resourceType.encodeAsHTML()}|${item.realm.encodeAsHTML()}|${item.resourceId.encodeAsHTML()}|${item.description.encodeAsHTML()}|
 </g:each>
-            </g:if>
-            <g:if test="${deletedItems}">
-h2. Deleted Resources
+</g:if>
+<g:if test="${deletedItems}">h2. Deleted Resources
 ||Type||Realm||Resource Id||Description||
 <g:each in="${deletedItems}" var="item">|${item.resourceType.encodeAsHTML()}|${item.realm.encodeAsHTML()}|${item.resourceId.encodeAsHTML()}|${item.description.encodeAsHTML()}|
 </g:each>
             </g:if>
         </textarea>
-        <div class="row pull-right">
+        <div class="text-right">
             <button type="button" class="btn btn-default" data-clipboard-target="wiki_markup">Copy to clipboard</button>
         </div>
     </g:if>
 
     <g:if test="${addedItems}">
-        <div class="row">
+        <div>
             <h2>New Resources</h2>
             <table class="table">
                 <tr>
@@ -107,7 +107,7 @@ h2. Deleted Resources
     </g:if>
 
     <g:if test="${deletedItems}">
-      <div class="row">
+      <div>
         <h2>Deleted Resources</h2>
         <table class="table">
             <tr>

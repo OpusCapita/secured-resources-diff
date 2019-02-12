@@ -29,11 +29,11 @@ class SecuredResourcesDiffController {
             List oldResources = securedResourcesDiffService.loadSecuredResources(app[0], app[1], command.versionFrom)
 
             if (oldResources == null) {
-                command.errors.rejectValue('versionFrom', 'versionFrom.invalid', [command.versionFrom, app[1]] as Object[], 'Application "{1}" with version "{0}" doesn\'\'t exist')
+                command.errors.rejectValue('versionFrom', 'versionFrom.invalid', [command.versionFrom, app[1]] as Object[], 'Application version "{0}" doesn\'\'t exist')
             } else {
                 List newResources = securedResourcesDiffService.loadSecuredResources(app[0], app[1], command.versionTo)
                 if (newResources == null) {
-                    command.errors.rejectValue('versionTo', 'versionTo.invalid', [command.versionTo, app[1]] as Object[], 'Application "{1}" with version "{0}" doesn\'\'t exist')
+                    command.errors.rejectValue('versionTo', 'versionTo.invalid', [command.versionTo, app[1]] as Object[], 'Application  version "{0}" doesn\'\'t exist')
                 } else {
                     Closure equalsResource = {left, right->
                         return left.resourceId == right.resourceId && left.resourceType == right.resourceType && left.realm == right.realm
