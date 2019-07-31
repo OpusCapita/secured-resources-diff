@@ -54,7 +54,7 @@ jobs:
             name=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" )
             gh_repo_link="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
 
-            cat << EOF | kubectl apply -f -
+            cat \<< EOF | kubectl apply -f -
             apiVersion: v1
             kind: Namespace
             metadata:
