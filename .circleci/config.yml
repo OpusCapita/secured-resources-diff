@@ -48,15 +48,25 @@ jobs:
               --cluster-name="${MINSK_CORE_K8S_AZURE_NAME}"
       - run:
           name: Prepare namespace
-          # setup a separate namespace in k8s for development installation,
-          # and make sure imagePullSecret is present in this namespace before trying to deploy anything
+          # setup a separate namespace in k8s for development installation
           command: |
-            setup-dev-namespace.sh \
-              --name=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" ) \
-              --gh-repo-link="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" \
-              --gh-branch=$( get-source-branch.sh ) \
-              --gh-commit=$( get-source-commit.sh ) \
-              --ci-build-url="${CIRCLE_BUILD_URL}"
+            # setup a namespace and add meta data
+            name=$( generate-k8s-resource-name.sh "dev-${CIRCLE_PROJECT_REPONAME}-$( get-source-branch.sh )" )
+            gh_repo_link="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
+
+            cat << EOF | kubectl apply -f -
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: ${name}
+              labels:
+                opuscapita.com/buhtig-s8k: "true"
+              annotations:
+                opuscapita.com/github-source-url: ${gh_repo_link}/tree/$( get-source-branch.sh )
+                opuscapita.com/github-commit-url: ${gh_repo_link}/commit/$( get-source-commit.sh )
+                opuscapita.com/ci-url: ${CIRCLE_BUILD_URL}
+                opuscapita.com/helm-release: ${name}
+            EOF
       - run:
           name: Copy over required secrets
           command: |
