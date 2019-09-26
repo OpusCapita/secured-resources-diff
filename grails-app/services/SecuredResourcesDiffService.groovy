@@ -10,7 +10,59 @@ import java.util.zip.ZipInputStream
  * @author Dmitry Divin
  */
 class SecuredResourcesDiffService {
+    static transactional = false
     Map configurationProperties
+
+    List getListOfVersions(String groupId, String artefactId) {
+        if (configurationProperties['maven.repository.server'] == 'nexus') {
+            List result = getLisOfVersionsFromNexus(groupId, artefactId)
+            if (artefactId == 'proc') {
+                return getLisOfVersionsFromNexus('com.jcatalog.procurement', 'procurement') + result
+            } else {
+                return result
+            }
+        } else {
+            return getLisOfVersionsFromArtifactory(groupId, artefactId)
+        }
+    }
+
+    private List getLisOfVersionsFromNexus(String groupId, String artefactId) {
+        String repositoryUrl = configurationProperties['maven.repository.nexus.metadata.url']
+        String username = configurationProperties['maven.repository.username']
+        String password = configurationProperties['maven.repository.password']
+
+        URL url = new URL(repositoryUrl + "/${groupId.replace('.', '/')}/${artefactId}/maven-metadata.xml")
+
+        HTTPBuilder http = new HTTPBuilder(url.protocol + ":" + (url.port == -1?'':url.port)+ "//" + url.host)
+
+        if (username && password) {
+            http.auth.basic(username, password)
+        }
+
+        def xml = http.get([path: url.path])
+
+        List result = []
+        for (version in xml.versioning.versions.version) {
+            result << version.text()
+        }
+
+        return result
+    }
+
+    private List getLisOfVersionsFromArtifactory(String groupId, String artefactId) {
+        String repositoryUrl = configurationProperties['maven.repository.artifactory.url']
+        String username = configurationProperties['maven.repository.username']
+        String password = configurationProperties['maven.repository.password']
+
+        URL url = new URL ("${repositoryUrl}/${groupId.replace('.', '/')}/${artefactId}/maven-metadata.xml")
+        def xmlContent = url.getText(['requestProperties': ["Authorization": "Basic " + "${username}:${password}".bytes.encodeBase64().toString()]])
+        def result = []
+        GPathResult xml = new XmlSlurper().parseText(xmlContent)
+        for (version in xml.versioning.versions.version) {
+            result << version.text()
+        }
+        return result
+    }
 
     /**
      * Download application WAR by unique fields (groupId+artefactId+version) from maven repository

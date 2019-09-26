@@ -1,3 +1,5 @@
+import net.sf.json.JSON
+
 /**
  * SecuredResourcesDiffController
  *
@@ -10,12 +12,24 @@ class SecuredResourcesDiffController {
      * Show diff form
      */
     def index() {
+        SecuredResourcesDiffCommand command = new SecuredResourcesDiffCommand()
+        bindData(command, params)
+
         if (request.method == 'POST') {
-            SecuredResourcesDiffCommand command = new SecuredResourcesDiffCommand()
-            bindData(command, params)
             return diff(command)
         }
-        render view: 'diff', model: [command: new SecuredResourcesDiffCommand(), applications: securedResourcesDiffService.applications]
+        List applications = securedResourcesDiffService.applications
+        if (!command.application) {
+            Map application = applications[0]
+            command.application = "${application.groupId}:${application.artefactId}"
+        }
+        command.versionFrom = ""
+        command.versionTo = ""
+
+        String[] app = command.application.split(':')
+        List versions = securedResourcesDiffService.getListOfVersions(app[0], app[1])
+
+        render view: 'diff', model: [command: command, applications: applications, versions: versions]
     }
 
     /**
@@ -46,6 +60,24 @@ class SecuredResourcesDiffController {
                 }
             }
         }
+        if (!command.application) {
+            Map application = model.applications[0]
+            command.application = "${application.groupId}:${application.artefactId}"
+        }
+        String[] app = command.application.split(':')
+        model.versions = securedResourcesDiffService.getListOfVersions(app[0], app[1])
+
         render view: 'diff', model: model
+    }
+
+    def versions() {
+        String application = params.application
+        String[] app = application.split(':')
+        String groupId = app[0]
+        String artefactId = app[1]
+
+        List versions = securedResourcesDiffService.getListOfVersions(groupId, artefactId)
+
+        render (versions as JSON)
     }
 }

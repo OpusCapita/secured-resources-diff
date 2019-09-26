@@ -4,6 +4,7 @@ maven.repository.artifactory.url = https://opuscapita.jfrog.io/opuscapita/maven-
 
 # for nexus it is necessary to define URL and name
 #maven.repository.nexus.url = http://maven.scand/nexus/service/local/artifact/maven/content
+maven.repository.nexus.metadata.url = http://maven.scand/nexus/content/groups/jcatalog
 #maven.repository.nexus.name = jcatalog
 
 # for each kind of server you might need to set up username and password

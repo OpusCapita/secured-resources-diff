@@ -1,6 +1,7 @@
 //= require jquery
 //= require ZeroClipboard.Core
 //= require ZeroClipboard
+//= require select2.full.min
 
 (function($) {
   $(function() {
@@ -12,5 +13,6 @@
         })
       });
     });
+    $("select").select2();
   });
 })(jQuery);

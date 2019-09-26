@@ -3,6 +3,13 @@
 <head>
     <title>Secured Resources Diff</title>
     <meta name="layout" content="main"></head>
+
+    <asset:script>
+        function onApplicationChange(e) {
+            var application = e.target.value;
+            document.location.href = "${g.createLink(controller: "securedResourcesDiff", action: "index")}?application=" + application
+        }
+    </asset:script>
 <body>
   <div class="container">
     <h2>Secured Resources Diff</h2>
@@ -19,7 +26,7 @@
         <div class="form-group ${g.hasErrors([bean: command, field: 'application'], 'has-error')}">
             <label for="application" class="control-label col-sm-3">Application</label>
             <div class="col-sm-9">
-                <g:select name="application" class="form-control" from="${applications}" optionKey="${{"${it.groupId}:${it.artefactId}"}}" optionValue="title" value="${command.application}"/>
+                <g:select name="application" onchange="onApplicationChange(event)" class="form-control" from="${applications}" optionKey="${{"${it.groupId}:${it.artefactId}"}}" optionValue="title" value="${command.application}"/>
             </div>
             <g:hasErrors bean="${command}" field="application">
                 <div class="col-sm-9 col-sm-offset-3">
@@ -33,7 +40,8 @@
         <div class="form-group ${g.hasErrors([bean: command, field: 'versionFrom'], 'has-error')}">
             <label for="versionFrom" class="control-label col-sm-3">Version from</label>
             <div class="col-sm-9">
-                <g:textField name="versionFrom" class="form-control" value="${command.versionFrom}"/>
+                <g:select name="versionFrom" noSelection="${['': '-- Select One --']}"
+                          from="${versions}" class="form-control" value="${command.versionFrom}"/>
             </div>
             <g:hasErrors bean="${command}" field="versionFrom">
                 <div class="col-sm-9 col-sm-offset-3">
@@ -47,7 +55,8 @@
         <div class="form-group ${g.hasErrors([bean: command, field: 'versionTo'], 'has-error')}">
             <label for="versionTo" class="control-label col-sm-3">Version to</label>
             <div class="col-sm-9">
-                <g:textField name="versionTo" class="form-control" value="${command.versionTo}"/>
+                <g:select name="versionTo" noSelection="${['': '-- Select One --']}"
+                          from="${versions}" class="form-control" value="${command.versionTo}"/>
             </div>
             <g:hasErrors bean="${command}" field="versionTo">
                 <div class="col-sm-9 col-sm-offset-3">
