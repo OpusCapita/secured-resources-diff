@@ -12,7 +12,16 @@
     </asset:script>
 <body>
   <div class="container">
-    <h2>Secured Resources Diff</h2>
+    <h2>
+        Secured Resources Diff
+        <div class="pull-right">
+            <small>Application versions</small>
+            <div class="btn-group btn-group-sm">
+                <g:link controller="securedResourcesDiff" action="index" params="[showOnlyReleases: false]" class="btn btn-default ${command.showOnlyReleases ? '': 'active'}">All</g:link>
+                <g:link controller="securedResourcesDiff" action="index" params="[showOnlyReleases: true]" class="btn btn-default ${command.showOnlyReleases ? 'active': ''}">Only Releases</g:link>
+            </div>
+        </div>
+    </h2>
 
     <g:if test="${request.method == 'POST'}">
       <g:if test="${!command.hasErrors() && !addedItems && !deletedItems}">
@@ -23,6 +32,7 @@
     </g:if>
 
     <g:form role="form" class="form-horizontal">
+        <g:hiddenField name="showOnlyReleases" value="${command.showOnlyReleases}"/>
         <div class="form-group ${g.hasErrors([bean: command, field: 'application'], 'has-error')}">
             <label for="application" class="control-label col-sm-3">Application</label>
             <div class="col-sm-9">

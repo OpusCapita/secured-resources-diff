@@ -13,6 +13,8 @@ class SecuredResourcesDiffCommand {
     String versionFrom
     //version to
     String versionTo
+    //show only releases
+    boolean showOnlyReleases = true
 
     static constraints = {
         application(nullable: false, blank: false)

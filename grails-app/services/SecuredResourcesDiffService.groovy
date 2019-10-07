@@ -9,7 +9,7 @@ class SecuredResourcesDiffService {
     static transactional = false
     Map configurationProperties
 
-    List getListOfVersions(String groupId, String artefactId) {
+    List getListOfVersions(String groupId, String artefactId, boolean onlyReleases = true) {
         String repositoryUrl = configurationProperties['maven.repository.artifactory.url']
         String username = configurationProperties['maven.repository.username']
         String password = configurationProperties['maven.repository.password']
@@ -21,7 +21,10 @@ class SecuredResourcesDiffService {
         for (version in xml.versioning.versions.version) {
             result << version.text()
         }
-        return result.findAll { it.indexOf("SNAPSHOT") == -1 }
+        if (onlyReleases) {
+            return result.findAll { it.indexOf("SNAPSHOT") == -1 }
+        }
+        return result
     }
 
     /**

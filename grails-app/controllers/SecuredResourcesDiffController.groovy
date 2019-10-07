@@ -27,7 +27,7 @@ class SecuredResourcesDiffController {
         command.versionTo = ""
 
         String[] app = command.application.split(':')
-        List versions = securedResourcesDiffService.getListOfVersions(app[0], app[1])
+        List versions = securedResourcesDiffService.getListOfVersions(app[0], app[1], command.showOnlyReleases)
 
         render view: 'diff', model: [command: command, applications: applications, versions: versions]
     }
@@ -65,19 +65,8 @@ class SecuredResourcesDiffController {
             command.application = "${application.groupId}:${application.artefactId}"
         }
         String[] app = command.application.split(':')
-        model.versions = securedResourcesDiffService.getListOfVersions(app[0], app[1])
+        model.versions = securedResourcesDiffService.getListOfVersions(app[0], app[1], command.showOnlyReleases)
 
         render view: 'diff', model: model
-    }
-
-    def versions() {
-        String application = params.application
-        String[] app = application.split(':')
-        String groupId = app[0]
-        String artefactId = app[1]
-
-        List versions = securedResourcesDiffService.getListOfVersions(groupId, artefactId)
-
-        render (versions as JSON)
     }
 }
