@@ -21,7 +21,7 @@ class SecuredResourcesDiffService {
         for (version in xml.versioning.versions.version) {
             result << version.text()
         }
-        return result
+        return result.findAll { it.indexOf("SNAPSHOT") == -1 }
     }
 
     /**
