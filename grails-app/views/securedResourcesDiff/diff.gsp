@@ -50,7 +50,7 @@
         <div class="form-group ${g.hasErrors([bean: command, field: 'versionFrom'], 'has-error')}">
             <label for="versionFrom" class="control-label col-sm-3">Version from</label>
             <div class="col-sm-9">
-                <g:select name="versionFrom" noSelection="${['': '-- Select One --']}"
+                <g:select name="versionFrom" noSelection="${['': '']}"
                           from="${versions}" class="form-control" value="${command.versionFrom}"/>
             </div>
             <g:hasErrors bean="${command}" field="versionFrom">
@@ -65,7 +65,7 @@
         <div class="form-group ${g.hasErrors([bean: command, field: 'versionTo'], 'has-error')}">
             <label for="versionTo" class="control-label col-sm-3">Version to</label>
             <div class="col-sm-9">
-                <g:select name="versionTo" noSelection="${['': '-- Select One --']}"
+                <g:select name="versionTo" noSelection="${['': '']}"
                           from="${versions}" class="form-control" value="${command.versionTo}"/>
             </div>
             <g:hasErrors bean="${command}" field="versionTo">
