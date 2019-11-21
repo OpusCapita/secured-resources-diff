@@ -12,6 +12,7 @@ metadata:
     nginx.ingress.kubernetes.io/add-base-url: "true"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/rewrite-target: {{ .Values.ingress.path }}
+    cert-manager.io/cluster-issuer: "default"
 spec:
   rules:
   - host: {{ .Values.ingress.host }}
