@@ -11,14 +11,14 @@ metadata:
     nginx.ingress.kubernetes.io/auth-url: https://$host/oauth2/opuscapita-azuread/auth
     nginx.ingress.kubernetes.io/add-base-url: "true"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/rewrite-target: {{ .Values.ingress.path }}
+    nginx.ingress.kubernetes.io/rewrite-target: {{ .Values.ingress.path }}$1
     cert-manager.io/cluster-issuer: "default"
 spec:
   rules:
   - host: {{ .Values.ingress.host }}
     http:
       paths:
-      - path: {{ .Values.ingress.path }}
+      - path: {{ .Values.ingress.path }}(/?.*)
         backend:
           serviceName: {{ .Chart.Name }}
           servicePort: 80
