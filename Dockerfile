@@ -1,4 +1,4 @@
-FROM opuscapita/minsk-core-oracle-jdk:1.8.192
+FROM opuscapita/minsk-core-oracle-jre:1.8.192
 
 ARG NAME
 ARG BUILD_DATE
