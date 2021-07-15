@@ -110,6 +110,9 @@ jobs:
               --set artifactory.userName="${JFROG_USER}" \
               --set artifactory.userPassword="${JFROG_PASSWD}" \
               \
+              --set onedrive.userName="${AZURE_USER}" \
+              --set onedrive.userPassword="${AZURE_PASS}" \
+              \
               --set dockerSecret="dockerhub" \
               --set github-status-deployment-link.github.user="${GH_NAME}" \
               --set github-status-deployment-link.github.password="${GH_PASS}" \

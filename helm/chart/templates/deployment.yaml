@@ -59,7 +59,5 @@ metadata:
   name: configuration-properties-file
 data:
   configuration.properties: |
-    maven.repository.server=artifactory
-    maven.repository.artifactory.url={{ .Values.artifactory.mavenRepoUrl }}
-    maven.repository.username={{ .Values.artifactory.userName }}
-    maven.repository.password={{ .Values.artifactory.userPassword }}
+    onedrive.repository.username={{ .Values.onedrive.userName }}
+    onedrive.repository.password={{ .Values.onedrive.userPassword }}
