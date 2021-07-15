@@ -40,12 +40,12 @@ class SecuredResourcesDiffController {
         if (command.validate()) {
             String[] app = command.application.split(':')
 
-            List oldResources = securedResourcesDiffService.loadSecuredResources(app[0], app[1], command.versionFrom)
+            List oldResources = securedResourcesDiffService.loadSecuredResources(app[1], command.versionFrom)
 
             if (oldResources == null) {
                 command.errors.rejectValue('versionFrom', 'versionFrom.invalid', [command.versionFrom, app[1]] as Object[], 'Application version "{0}" doesn\'\'t exist')
             } else {
-                List newResources = securedResourcesDiffService.loadSecuredResources(app[0], app[1], command.versionTo)
+                List newResources = securedResourcesDiffService.loadSecuredResources( app[1], command.versionTo)
                 if (newResources == null) {
                     command.errors.rejectValue('versionTo', 'versionTo.invalid', [command.versionTo, app[1]] as Object[], 'Application  version "{0}" doesn\'\'t exist')
                 } else {

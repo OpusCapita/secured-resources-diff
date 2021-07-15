@@ -12,6 +12,8 @@ grails.project.dependency.resolution = {
 
     dependencies {
         runtime 'org.codehaus.groovy.modules.http-builder:http-builder:0.7'
+        runtime 'com.microsoft.graph:microsoft-graph:3.2.0'
+        runtime 'com.azure:azure-identity:1.3.1'
     }
 
     plugins {

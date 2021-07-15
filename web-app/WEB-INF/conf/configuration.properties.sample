@@ -1,8 +1,6 @@
-maven.repository.artifactory.url = https://opuscapita.jfrog.io/opuscapita/maven-get
-
 # for each kind of server you might need to set up username and password
-maven.repository.username=
-maven.repository.password=
+onedrive.repository.username=
+onedrive.repository.password=
 
 # all other configuration options could be found in default-configuration.properties file
 # if required you can override them here
