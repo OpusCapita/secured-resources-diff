@@ -27,7 +27,7 @@ class SecuredResourcesDiffController {
         command.versionTo = ""
 
         String[] app = command.application.split(':')
-        List versions = securedResourcesDiffService.getListOfVersions(app[0], app[1], command.showOnlyReleases)
+        List versions = securedResourcesDiffService.getListOfVersions(app[1], command.showOnlyReleases)
 
         render view: 'diff', model: [command: command, applications: applications, versions: versions]
     }
@@ -45,16 +45,16 @@ class SecuredResourcesDiffController {
             if (oldResources == null) {
                 command.errors.rejectValue('versionFrom', 'versionFrom.invalid', [command.versionFrom, app[1]] as Object[], 'Application version "{0}" doesn\'\'t exist')
             } else {
-                List newResources = securedResourcesDiffService.loadSecuredResources( app[1], command.versionTo)
+                List newResources = securedResourcesDiffService.loadSecuredResources(app[1], command.versionTo)
                 if (newResources == null) {
                     command.errors.rejectValue('versionTo', 'versionTo.invalid', [command.versionTo, app[1]] as Object[], 'Application  version "{0}" doesn\'\'t exist')
                 } else {
-                    Closure equalsResource = {left, right->
+                    Closure equalsResource = { left, right ->
                         return left.resourceId == right.resourceId && left.resourceType == right.resourceType && left.realm == right.realm
                     }
 
-                    model.addedItems = newResources.findAll {!oldResources.any(equalsResource.curry(it))}
-                    model.deletedItems = oldResources.findAll {!newResources.any(equalsResource.curry(it))}
+                    model.addedItems = newResources.findAll { !oldResources.any(equalsResource.curry(it)) }
+                    model.deletedItems = oldResources.findAll { !newResources.any(equalsResource.curry(it)) }
 
                     model.checkedItems = true
                 }
@@ -65,7 +65,7 @@ class SecuredResourcesDiffController {
             command.application = "${application.groupId}:${application.artefactId}"
         }
         String[] app = command.application.split(':')
-        model.versions = securedResourcesDiffService.getListOfVersions(app[0], app[1], command.showOnlyReleases)
+        model.versions = securedResourcesDiffService.getListOfVersions(app[1], command.showOnlyReleases)
 
         render view: 'diff', model: model
     }

@@ -18,13 +18,16 @@ import java.util.zip.ZipInputStream
 class SecuredResourcesDiffService {
     static transactional = false
     Map configurationProperties
+    private static final String USER_ID = "9fbc943c-74d6-4352-aac3-561fca65cfdb"
+    // UserId of owner of the applications_storage folder
+    private static final String APP_ID = "b4380407-7dbc-44d6-8a38-f81a1846a87f"
+    // Client_id of azure app which we used to connect for download wars
 
-    List getListOfVersions(String groupId, String artefactId, boolean onlyReleases = true) {
-        String ownerId = "9fbc943c-74d6-4352-aac3-561fca65cfdb"
+    List getListOfVersions(String artefactId, boolean onlyReleases = true) {
 
-        DriveItemCollectionPage itemCollectionPage = graphClient.users(ownerId)
+        DriveItemCollectionPage itemCollectionPage = graphClient.users(USER_ID)
             .drive().root().itemWithPath("applications_storage/$artefactId").children().buildRequest().get()
-        ArrayList<String> files = itemCollectionPage.currentPage.name.findAll {it.contains('.war')}
+        ArrayList<String> files = itemCollectionPage.currentPage.name.findAll { it.contains('.war') }
 
         def result = []
 
@@ -45,7 +48,7 @@ class SecuredResourcesDiffService {
      */
     List loadSecuredResources(String artefactId, String version) {
         String securedResourcesPath = configurationProperties['securedResources.path']
-        def search = graphClient.users("9fbc943c-74d6-4352-aac3-561fca65cfdb")
+        def search = graphClient.users(USER_ID)
             .drive()
             .root()
             .search(DriveItemSearchParameterSet
@@ -53,21 +56,21 @@ class SecuredResourcesDiffService {
                 .withQ("${artefactId}-${version}.war")
                 .build())
             .buildRequest()
-            .get().currentPage.findAll {it.name.contains("${artefactId}-${version}.war")}
+            .get().currentPage.findAll { it.name.contains("${artefactId}-${version}.war") }
 
         List result = []
 
         InputStream is = null
         try {
-            is = graphClient.users("9fbc943c-74d6-4352-aac3-561fca65cfdb").drive().items(search.get(0).id).content().buildRequest().get();
+            is = graphClient.users(USER_ID).drive().items(search.get(0).id).content().buildRequest().get();
         } catch (e) {
-            log.error "download war file with errors in maven", e
+            log.error "download war file with errors", e
 
             return null
         }
         ZipInputStream zipIn = new ZipInputStream(is)
         ZipEntry entry = zipIn.nextEntry
-        while(entry != null) {
+        while (entry != null) {
             if (entry.name == securedResourcesPath) {
                 GPathResult xml = new XmlSlurper().parse(zipIn)
                 for (item in xml.SecuredResource) {
@@ -87,7 +90,7 @@ class SecuredResourcesDiffService {
      * Get applications from configuration properties
      */
     List getApplications() {
-        List apps = configurationProperties['applications'].split(',').collect {it.trim()}
+        List apps = configurationProperties['applications'].split(',').collect { it.trim() }
 
         List result = []
         for (String app in apps) {
@@ -106,13 +109,12 @@ class SecuredResourcesDiffService {
     }
 
     private GraphServiceClient<Request> getGraphClient() {
-        String appId = "76bbe1e4-3c3f-4e51-97d2-2ce409f28e09"
         String username = configurationProperties['onedrive.repository.username']
         String password = configurationProperties['onedrive.repository.password']
-        List<String> appScopes = Arrays.asList("User.Read Files.Read.All Files.ReadWrite.All Sites.Read.All Sites.ReadWrite.All")
-
+        List<String> appScopes = ["User.Read", "Files.Read.All", "Files.ReadWrite.All", "Sites.Read.All", "Sites.ReadWrite.All"]
+        // used the User/Pass Auth which is not recommended, need to use one of other ways, but Subscriptions administrator rights are needed https://docs.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=Java
         UsernamePasswordCredential usernamePasswordCredential = new UsernamePasswordCredentialBuilder()
-            .clientId(appId)
+            .clientId(APP_ID)
             .username(username)
             .password(password)
             .build();
