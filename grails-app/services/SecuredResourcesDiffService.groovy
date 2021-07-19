@@ -43,7 +43,7 @@ class SecuredResourcesDiffService {
     }
 
     /**
-     * Download application WAR by unique fields (groupId+artefactId+version) from maven repository
+     * Download application WAR by unique fields (artefactId+version) from maven repository
      * and load secured resources
      */
     List loadSecuredResources(String artefactId, String version) {
@@ -95,13 +95,12 @@ class SecuredResourcesDiffService {
         List result = []
         for (String app in apps) {
             String artefactId = configurationProperties["applications.${app}.artefactId"]
-            String groupId = configurationProperties["applications.${app}.groupId"]
 
 
-            if (artefactId && groupId) {
+            if (artefactId) {
                 String title = configurationProperties["applications.${app}.title"] ?: artefactId.toUpperCase()
 
-                result << [artefactId: artefactId, groupId: groupId, title: title]
+                result << [artefactId: artefactId, title: title]
             }
         }
 
