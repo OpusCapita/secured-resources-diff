@@ -1,8 +1,7 @@
-maven.repository.artifactory.url = https://opuscapita.jfrog.io/opuscapita/maven-get
+# for each kind of server you might need to set up username and password. for first login please used interactive provider https://docs.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=Java
+onedrive.repository.username=
+onedrive.repository.password=
 
-# for each kind of server you might need to set up username and password
-maven.repository.username=
-maven.repository.password=
 
 # all other configuration options could be found in default-configuration.properties file
 # if required you can override them here

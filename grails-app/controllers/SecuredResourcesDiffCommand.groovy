@@ -7,7 +7,7 @@ import grails.validation.Validateable
  */
 @Validateable
 class SecuredResourcesDiffCommand {
-    //groupId with arterfactId
+    //arterfactId
     String application
     //version from
     String versionFrom

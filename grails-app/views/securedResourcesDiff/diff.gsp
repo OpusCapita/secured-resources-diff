@@ -36,7 +36,7 @@
         <div class="form-group ${g.hasErrors([bean: command, field: 'application'], 'has-error')}">
             <label for="application" class="control-label col-sm-3">Application</label>
             <div class="col-sm-9">
-                <g:select name="application" onchange="onApplicationChange(event)" class="form-control" from="${applications}" optionKey="${{"${it.groupId}:${it.artefactId}"}}" optionValue="title" value="${command.application}"/>
+                <g:select name="application" onchange="onApplicationChange(event)" class="form-control" from="${applications}" optionKey="${{"${it.artefactId}"}}" optionValue="title" value="${command.application}"/>
             </div>
             <g:hasErrors bean="${command}" field="application">
                 <div class="col-sm-9 col-sm-offset-3">
